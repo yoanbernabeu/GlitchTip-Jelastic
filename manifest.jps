@@ -2,7 +2,7 @@ type: install
 name: GlitchTip
 id: glitchtip
 categories: ["apps/dev-and-admin-tools"]
-logo: https://github.com/yoanbernabeu/AFFiNE_Jelastic/blob/main/logo.svg?raw=true
+logo: https://raw.githubusercontent.com/yoanbernabeu/GlitchTip-Jelastic/main/logo.svg
 homepage: https://glitchtip.com/
 
 description: |
@@ -27,7 +27,6 @@ globals:
   EMAIL_URL: ${settings.EMAIL_URL}
   DEFAULT_FROM_EMAIL: ${settings.DEFAULT_FROM_EMAIL}
   CELERY_WORKER_CONCURRENCY: 2
-  GLITCHTIP_DOMAIN: ${env.domain}
 
 nodes:
   - nodeType: nginx
@@ -70,7 +69,6 @@ nodes:
       EMAIL_URL: ${globals.EMAIL_URL}
       DEFAULT_FROM_EMAIL: ${globals.DEFAULT_FROM_EMAIL}
       CELERY_WORKER_CONCURRENCY: ${globals.CELERY_WORKER_CONCURRENCY}
-      GLITCHTIP_DOMAIN: ${globals.GLITCHTIP_DOMAIN}
 
   - image: glitchtip/glitchtip:latest
     count: 1
@@ -88,25 +86,16 @@ nodes:
       EMAIL_URL: ${globals.EMAIL_URL}
       DEFAULT_FROM_EMAIL: ${globals.DEFAULT_FROM_EMAIL}
       CELERY_WORKER_CONCURRENCY: ${globals.CELERY_WORKER_CONCURRENCY}
-      GLITCHTIP_DOMAIN: ${globals.GLITCHTIP_DOMAIN}
 
-  - image: glitchtip/glitchtip:latest
-    count: 1
-    cloudlets: 16
-    fixedCloudlets: 1
-    nodeGroup: migrate
-    displayName: migrate
-    isSLBAccessEnabled: false
-    cmd:
+onInstall:
+  - migrate
+
+actions:
+  migrate:
+    cmd[cp]: |-
+      cd /code
       ./manage.py migrate
-    env:
-      DATABASE_URL: postgresql://webadmin:${globals.PASSWORD_DB}@sqldb:5432/postgres
-      REDIS_URL: redis://cache:6379
-      SECRET_KEY: ${globals.SECRET_KEY}
-      EMAIL_URL: ${globals.EMAIL_URL}
-      DEFAULT_FROM_EMAIL: ${globals.DEFAULT_FROM_EMAIL}
-      CELERY_WORKER_CONCURRENCY: ${globals.CELERY_WORKER_CONCURRENCY}
-      GLITCHTIP_DOMAIN: ${globals.GLITCHTIP_DOMAIN}
+    user: root
 
 success: |
   Your GlitchTip environment is ready to go!
